@@ -1,6 +1,4 @@
-
 var spawn = require('child_process').spawn;
-
 /* This is very brittle... */
 function parseLine(line){
     var broken = (' '+line).split(/\s+/);// pad with space, and then split on space
@@ -19,7 +17,7 @@ function parseLine(line){
     return {trigger: false, pid: null};
 }
 
-function spawnTop(updateClient){
+exports.spawnTop = function (updateClient){
     var top = spawn('top',['-bs']);
     // This last_line non-sense is required as buffers many split up a line of output...
     var last_line = '';
@@ -57,6 +55,4 @@ function spawnTop(updateClient){
 	    console.log('exiting');
 	    process.exit();
 	});
-}
-
-spawnTop(function(data){console.log(data)});
+};
