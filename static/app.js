@@ -4,6 +4,8 @@ var points = timeout = 30,
     dx = view.size.width / points,
     threshold = 0.1;
 
+project.currentStyle = {strokeWidth: 3, strokeColor: '#000000'};
+
 var colorByUser = (function(){/* ul-tra ul-tra ultraviolet */
 	var  colors = "#c40233 #009f6b #0087bd #ffd300".split(" ").sort('_ -> 0.5-Math.random()'.lambda()),table = {},i=0;
 	return function(name){return table[name] ||(table[name] = (colors[i++] || colors[Math.floor(Math.random()*colors.length)]));};
@@ -13,7 +15,6 @@ function initPath(proc){
     var p = new Path(),
 	y = view.size.height;
     p.strokeColor = colorByUser(proc.user);
-    p.strokeWidth = 5;
     until('<0',function(pos){
 	    p.add(new Point(pos,y));
 	    return pos - dx;
