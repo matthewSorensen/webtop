@@ -1,13 +1,13 @@
 Functional.install();
+
+var points = timeout = 30,
+    dx = view.size.width / points,
+    threshold = 0.1;
+
 var colorByUser = (function(){/* ul-tra ul-tra ultraviolet */
 	var  colors = "#c40233 #009f6b #0087bd #ffd300".split(" ").sort('_ -> 0.5-Math.random()'.lambda()),table = {},i=0;
-	return function(name){
-	    return table[name] ||(table[name] = (colors[i++] || colors[Math.floor(Math.random()*colors.length)]));
-	};
+	return function(name){return table[name] ||(table[name] = (colors[i++] || colors[Math.floor(Math.random()*colors.length)]));};
     })();
-
-var points = 15,
-    dx = view.size.width / points;
 
 function initPath(proc){
     var p = new Path(),
@@ -20,23 +20,46 @@ function initPath(proc){
 	})(view.size.width);
     p.add(view.bounds.bottomLeft);
     p.smooth();
-    return {line:p,pid:proc.pid};
+    p.ticks = 10;//'Monkey-patch' some attrs for tracking dead processes. 
+    return p;
 }
 
-function updatePath(proc,latest){
-    var p = proc.line;
+function updatePath(p,latest){
+    p.ticks--;// Deal with maybe 'killing' the process
+    latest = (latest||{cpu:0}).cpu;
+    if(latest > threshold)
+	p.ticks = timeout;
+    latest = view.size.height*(1-latest/130);//scale latest to a position
     for(var i = 0; i<p.segments.length; i++){
 	var tmp = p.segments[i].point.y;
 	p.segments[i].point.y = latest;
 	latest = tmp;
     }
-    p.smooth(); 
+    p.smooth();
+    return p.ticks<=0;
 }
 
+function interesting(raw){
+    var arr = [];
+    for(var i in raw)
+	arr.push(raw[i]);
+    arr.sort('i j -> j.hunger - i.hunger'.lambda()); 
+    return arr.slice(0,15);// Take the most resource-needy stuff
+}
 
-var socket = io.connect('/');
-socket.on('message', function (data){
-	updatePath(m,Math.random()*view.size.height);
-	updatePath(n,Math.random()*view.size.height);
-	view.draw();
-    });
+io.connect('/').on('message',(function(active){
+	    return function(data){
+		map(function(proc){// Add the new processes to the active set
+			if(active[proc.pid] === undefined){
+			    active[proc.pid] = initPath(proc);
+			}
+		    },interesting(data));
+		for(var pid in active){// Update everything, removing all of the dead procs
+		    if(updatePath(active[pid],data[pid])){
+			active[pid].remove();
+			delete active[pid];
+		    }
+		}
+		view.draw();
+	    };
+	})({}));
