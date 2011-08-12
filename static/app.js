@@ -1,16 +1,12 @@
 Functional.install();
-
 var points = timeout = 30,
     dx = view.size.width / points,
     threshold = 0.1;
-
 project.currentStyle = {strokeWidth: 3, strokeColor: '#000000'};
-
 var colorByUser = (function(){/* ul-tra ul-tra ultraviolet */
 	var  colors = "#c40233 #009f6b #0087bd #ffd300".split(" ").sort('_ -> 0.5-Math.random()'.lambda()),table = {},i=0;
 	return function(name){return table[name] ||(table[name] = (colors[i++] || colors[Math.floor(Math.random()*colors.length)]));};
     })();
-
 function initPath(proc){
     var p = new Path(),
 	y = view.size.height;
@@ -21,10 +17,9 @@ function initPath(proc){
 	})(view.size.width);
     p.add(view.bounds.bottomLeft);
     p.smooth();
-    p.ticks = 10;//'Monkey-patch' some attrs for tracking dead processes. 
+    p.ticks = timeout;//some attrs for tracking dead processes. 
     return p;
 }
-
 function updatePath(p,latest){
     p.ticks--;// Deal with maybe 'killing' the process
     latest = (latest||{cpu:0}).cpu;
@@ -39,7 +34,6 @@ function updatePath(p,latest){
     p.smooth();
     return p.ticks<=0;
 }
-
 function interesting(raw){
     var arr = [];
     for(var i in raw)
@@ -47,7 +41,6 @@ function interesting(raw){
     arr.sort('i j -> j.hunger - i.hunger'.lambda()); 
     return arr.slice(0,15);// Take the most resource-needy stuff
 }
-
 io.connect('/').on('message',(function(active){
 	    return function(data){
 		map(function(proc){// Add the new processes to the active set
