@@ -5,12 +5,15 @@ function parseLine(line){
     if(broken[1] == 'top'){ // We've completed a cycle, and can send the data out
 	return {trigger:true};
     }else if(broken[1].match(/[0-9]+/)){ // If the first line is an integer, it's new data
+	var mem = 1*broken[10],cpu = 1*broken[9],hunger=mem+cpu,pid=1*broken[1];
 	return {trigger:false,
-		pid: broken[1],
+		pid: pid,
 		data: {user: broken[2],
 		    command: broken[12],
-		    mem:     broken[10],
-		    cpu:     broken[9]
+		    mem:     mem,
+		    cpu:     cpu,
+		    hunger:  hunger,
+		    pid:     pid
 	    }};
     } // Otherwise it's the boring stuff. This is the first few lines of top. 
     // If I wasn't as lazy, this holds some interesting info!
